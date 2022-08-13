@@ -1,1 +1,4 @@
 /img
+*.mp4
+*.avi
+__pycache__
