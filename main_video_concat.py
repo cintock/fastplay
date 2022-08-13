@@ -1,10 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
-
 import cv2
 import time
 import datetime
 import glob
-
 import numpy
 
 

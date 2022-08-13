@@ -6,63 +6,10 @@ import cv2
 # PROCESSED_FRAME_RESOLUTION = (640, 360)
 import numpy
 
+from objects_saver import ObjectSaver
+
 VIDEO_FRAME_RESOLUTION = (1920, 1080)
 PROCESSED_FRAME_RESOLUTION = (768, 432)
-
-
-class Frozen:
-    def __init__(self):
-        self._frozen = False
-
-    def freeze(self):
-        self._frozen = True
-
-    def __setattr__(self, key: str, value):
-        if getattr(self, '_frozen', False) is True:
-            attr = getattr(self, key)
-            if attr is not None:
-                super().__setattr__(key, value)
-            else:
-                raise AssertionError('Frozen')
-        else:
-            super().__setattr__(key, value)
-
-
-class ObjectSaver(Frozen):
-    def __init__(self):
-        super().__init__()
-        self._n = 0
-        self._resize_coef: float = 1.0
-        self.freeze()
-
-    @property
-    def resize_coef(self):
-        return self._resize_coef
-
-    @resize_coef.setter
-    def resize_coef(self, value: float):
-        assert isinstance(value, float)
-        self._resize_coef = value
-
-    def reset(self):
-        self._n = 0
-
-    def save_object(
-            self,
-            frame: numpy.ndarray,
-            x1: int, y1: int,
-            w: int, h: int,
-            weight: float
-    ):
-        x2 = x1 + w
-        y2 = y1 + h
-        obj_image = frame[
-                    round(y1 * self._resize_coef): round(y2 * self._resize_coef),
-                    round(x1 * self._resize_coef): round(x2 * self._resize_coef)
-        ]
-        self._n += 1
-        cv2.imshow('person', obj_image)
-        cv2.imwrite(r'img\obj_{0:0f}_{1}.jpeg'.format(weight * 100, self._n), obj_image)
 
 
 def draw_object_zone(
@@ -119,8 +66,8 @@ if __name__ == '__main__':
     object_saver = ObjectSaver()
     object_saver.resize_coef = resize_coef
 
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out_video = cv2.VideoWriter('person.avi', fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_video = cv2.VideoWriter('person.mp4', fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
     try:
 
         video = cv2.VideoCapture(r'D:\MyData\Files\MyProjects\scripts\13 авг.avi')
@@ -149,7 +96,7 @@ if __name__ == '__main__':
                         print(f'boxes: {boxes}')
                         print(f'weights: {weights}')
                         max_weight = max(weights)
-                        if len(boxes) > 0 and max_weight > 0.2:
+                        if len(boxes) > 0 and max_weight > 0.7:
                             for box, weight in zip(boxes, weights):
                                 x1, y1, w, h = box
                                 draw_object_zone(
