@@ -79,8 +79,8 @@ def search_video_files(dir: str):
 
 
 if __name__ == '__main__':
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('out3.avi', fourcc, 30.0, (1920, 1080))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter('out2.mp4', fourcc, 30.0, (1920, 1080))
     try:
         videofiles = search_video_files(r'T:\Record\cam vet 2\1')
         for file in videofiles:

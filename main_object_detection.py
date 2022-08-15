@@ -70,7 +70,7 @@ if __name__ == '__main__':
     out_video = cv2.VideoWriter('person.mp4', fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
     try:
 
-        video = cv2.VideoCapture(r'D:\MyData\Files\MyProjects\scripts\13 авг.avi')
+        video = cv2.VideoCapture(r'D:\MyData\Files\MyProjects\scripts\videocam\out2.mp4')
         # video = cv2.VideoCapture(r'T:\Record\cam vet 2\1\20220812120000.h264')
         try:
             eof = False
@@ -93,25 +93,22 @@ if __name__ == '__main__':
                     boxes, weights = hog.detectMultiScale(processed_frame, 0, (8, 8))
 
                     if len(weights) > 0:
-                        print(f'boxes: {boxes}')
-                        print(f'weights: {weights}')
-                        max_weight = max(weights)
-                        if len(boxes) > 0 and max_weight > 0.7:
-                            for box, weight in zip(boxes, weights):
+                        for box, weight in zip(boxes, weights):
+                            if weight > 0.7:
                                 x1, y1, w, h = box
+
+                                object_saver.save_object(
+                                    frame, int(x1), int(y1), int(w), int(h), weight=weight)
+
                                 draw_object_zone(
                                     frame, float(weight), float(resize_coef),
                                     int(x1), int(y1), int(w), int(h),
                                     small_rectangle=False
                                 )
-                                object_saver.save_object(
-                                    frame, int(x1), int(y1), int(w), int(h), weight=weight)
 
-                    draw_object_zone(frame, None, resize_coef, 0, 0, 64, 128, color=(0, 0, 0))
-                    cv2.imshow('detection', frame)
-                    out_video.write(frame)
-                    # for i in range(500):
-                    #     video.grab()
+                                draw_object_zone(frame, None, resize_coef, 0, 0, 64, 128, color=(0, 0, 0))
+                                cv2.imshow('detection', frame)
+                                out_video.write(frame)
 
                 key = cv2.waitKey(1)
 
