@@ -11,8 +11,8 @@ class Frozen:
 
     def __setattr__(self, key: str, value):
         if getattr(self, '_frozen', False) is True:
-            attr = getattr(self, key)
-            if attr is not None:
+            has_attr = hasattr(self, key)
+            if has_attr:
                 super().__setattr__(key, value)
             else:
                 raise AssertionError('Frozen')

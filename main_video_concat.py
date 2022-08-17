@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+
 import cv2
 import time
 import datetime
 import glob
 import numpy
+
+from task.task_description import TaskDescription
 
 
 def append_file(out: cv2.VideoWriter, input: cv2.VideoCapture):
@@ -78,11 +81,12 @@ def search_video_files(dir: str):
     return video_files
 
 
-if __name__ == '__main__':
+def process_task(task: TaskDescription):
+    assert isinstance(task, TaskDescription)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter('out2.mp4', fourcc, 30.0, (1920, 1080))
+    out = cv2.VideoWriter(str(task.get_actual_output_concatenation_filename()), fourcc, 30.0, (1920, 1080))
     try:
-        videofiles = search_video_files(r'T:\Record\cam vet 2\1')
+        videofiles = search_video_files(str(task.input_folder))
         for file in videofiles:
             input = cv2.VideoCapture(file)
             try:
@@ -92,4 +96,21 @@ if __name__ == '__main__':
                 input.release()
     finally:
         out.release()
+
+
+if __name__ == '__main__':
+    cam2_task = TaskDescription()
+    cam2_task.input_folder = r'T:\Record\cam vet 2\1'
+    cam2_task.output_concatenation_filename = 'cam2.mp4'
+
+    cam3_task = TaskDescription()
+    cam3_task.input_folder = r'T:\Record\ip cam vet 3\1'
+    cam2_task.output_concatenation_filename = 'cam3.mp4'
+
+    processed_tasks = [cam2_task, cam3_task]
+
+    try:
+        for task in processed_tasks:
+            process_task(task)
+    finally:
         cv2.destroyAllWindows()
