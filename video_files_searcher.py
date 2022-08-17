@@ -87,6 +87,11 @@ class VideoFilesSearcher(Frozen):
 
     @property
     def prefix_pattern(self) -> str:
+        """
+        Шаблон имени файла с которого начинается имя видеофайла. Может содержать спецсимволы * и ?
+        Например, если имя файла имеет вид Camera_1_2022-08-17-10-00-00.mp4, то шаблон префикса может быть Camera_1_
+        :return: шаблон префикса видеофайла
+        """
         return self._prefix_pattern
 
     @prefix_pattern.setter
@@ -96,6 +101,12 @@ class VideoFilesSearcher(Frozen):
 
     @property
     def suffix_pattern(self) -> str:
+        """
+        Шаблон суффикса видеофайла. Может содержать спецсимволы * и ?
+        Должен включать расширение видеофайла. Например, для случая Camera_1_2022-08-17-10-00-00.mp4
+        шаблон суффикса может быть *.mp4
+        :return:
+        """
         return self._suffix_pattern
 
     @suffix_pattern.setter
@@ -105,6 +116,14 @@ class VideoFilesSearcher(Frozen):
 
     @property
     def strftime_pattern(self) -> str:
+        """
+        Шаблон имени файла с датой временем. Содержит символы, которые разбирает Питоновский метод strftime.
+        Например, для случая Camera_1_2022-08-17-10-15-00.mp4 может быть %Y-%m-%d-%H если интересует
+        захват времени без минут, или %Y-%m-%d-%H-%M если нужен захват времени с минутами.
+        Какой формат использовать, зависит от того, как настроен видеорегистратор
+        (создавать видео через часы или через интервал в минутах)
+        :return:
+        """
         return self._strftime_pattern
 
     @strftime_pattern.setter
@@ -200,8 +219,8 @@ if __name__ == '__main__':
     video_files_searcher = VideoFilesSearcher()
     video_files_searcher.prefix_pattern = '20??'
     video_files_searcher.suffix_pattern = '*.h264'
-    video_files_searcher.strftime_pattern = '%m%d%H'
-    video_files_searcher.reference_date = datetime.datetime(2022, 8, 17, 19, 1, 50, 0)
+    video_files_searcher.strftime_pattern = '%m%d%H%M'
+    # video_files_searcher.reference_date = datetime.datetime(2022, 8, 17, 19, 1, 50, 0)
     res = video_files_searcher.search_video_files(r'T:\Record\cam vet 2\1')
     for r in res:
         print(r)
