@@ -59,3 +59,12 @@ class TaskDescription(Frozen):
         actual_full_filename = dirname / actual_filename_only
         assert isinstance(actual_full_filename, Path)
         return actual_full_filename
+
+    def check(self) -> bool:
+        return all([
+            self._output_concatenation_filename is not None,
+            self._input_folder is not None
+        ])
+
+    def __str__(self) -> str:
+        return f'Task (input[{self._input_folder}]: output[{self._output_concatenation_filename}])'

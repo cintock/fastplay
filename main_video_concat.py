@@ -105,12 +105,19 @@ if __name__ == '__main__':
 
     cam3_task = TaskDescription()
     cam3_task.input_folder = r'T:\Record\ip cam vet 3\1'
-    cam2_task.output_concatenation_filename = 'cam3.mp4'
+    cam3_task.output_concatenation_filename = 'cam3.mp4'
 
     processed_tasks = [cam2_task, cam3_task]
 
-    try:
-        for task in processed_tasks:
-            process_task(task)
-    finally:
-        cv2.destroyAllWindows()
+    all_task_correct = True
+    for task in processed_tasks:
+        if not task.check():
+            all_task_correct = False
+            print('Can not process task. Task is not correct: {0}'.format(task))
+
+    if all_task_correct:
+        try:
+            for task in processed_tasks:
+                process_task(task)
+        finally:
+            cv2.destroyAllWindows()
