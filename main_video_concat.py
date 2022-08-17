@@ -71,14 +71,7 @@ def process_task(task: TaskDescription):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(str(task.get_actual_output_concatenation_filename()), fourcc, 30.0, (1920, 1080))
     try:
-        searcher = VideoFilesSearcher()
-        searcher.strftime_pattern = '%Y%m%d%H'
-        searcher.suffix_pattern = '*.h264'
-        searcher.reference_date_delta_hours = 2
-        searcher.reference_date_delta_minutes = 2
-        searcher.video_length_hours = 2
-        searcher.video_length_minutes = 0
-        videofiles = searcher.search_video_files(str(task.input_folder))
+        videofiles = task.input_files
         for file in videofiles:
             input = cv2.VideoCapture(file)
             try:
@@ -91,12 +84,20 @@ def process_task(task: TaskDescription):
 
 
 if __name__ == '__main__':
+    searcher = VideoFilesSearcher()
+    searcher.strftime_pattern = '%Y%m%d%H'
+    searcher.suffix_pattern = '*.h264'
+    searcher.reference_date_delta_hours = 2
+    searcher.reference_date_delta_minutes = 2
+    searcher.video_length_hours = 2
+    searcher.video_length_minutes = 0
+
     cam2_task = TaskDescription()
-    cam2_task.input_folder = r'T:\Record\cam vet 2\1'
+    cam2_task.input_files = searcher.search_video_files(r'T:\Record\cam vet 2\1')
     cam2_task.output_concatenation_filename = 'cam2.mp4'
 
     cam3_task = TaskDescription()
-    cam3_task.input_folder = r'T:\Record\ip cam vet 3\1'
+    cam3_task.input_files = searcher.search_video_files(r'T:\Record\ip cam vet 3\1')
     cam3_task.output_concatenation_filename = 'cam3.mp4'
 
     processed_tasks = [cam2_task, cam3_task]
