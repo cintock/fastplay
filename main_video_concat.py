@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
+from datetime import datetime
 
 import cv2
 import time
-import datetime
-import glob
 import numpy
 
 from task.task_description import TaskDescription
+from video_files_searcher import VideoFilesSearcher
 
 
 def append_file(out: cv2.VideoWriter, input: cv2.VideoCapture):
@@ -67,26 +66,19 @@ def append_file(out: cv2.VideoWriter, input: cv2.VideoCapture):
     print('avg frame time: {0}'.format(avg_frame_time))
 
 
-def search_video_files(dir: str):
-    assert os.path.isdir(dir)
-    video_files = []
-    current_date = datetime.datetime.now()
-    begin_date = current_date - datetime.timedelta(hours=24, minutes=2)
-    print(begin_date)
-    for i in range(24):
-        selected_time = begin_date + datetime.timedelta(hours=i)
-        pattern = selected_time.strftime('%Y%m%d%H') + '*'
-        files = glob.glob('{dir}\\{pattern}.h264'.format(dir=dir, pattern=pattern))
-        video_files.extend(files)
-    return video_files
-
-
 def process_task(task: TaskDescription):
     assert isinstance(task, TaskDescription)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(str(task.get_actual_output_concatenation_filename()), fourcc, 30.0, (1920, 1080))
     try:
-        videofiles = search_video_files(str(task.input_folder))
+        searcher = VideoFilesSearcher()
+        searcher.strftime_pattern = '%Y%m%d%H'
+        searcher.suffix_pattern = '*.h264'
+        searcher.reference_date_delta_hours = 2
+        searcher.reference_date_delta_minutes = 2
+        searcher.video_length_hours = 2
+        searcher.video_length_minutes = 0
+        videofiles = searcher.search_video_files(str(task.input_folder))
         for file in videofiles:
             input = cv2.VideoCapture(file)
             try:

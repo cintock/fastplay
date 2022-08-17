@@ -76,8 +76,8 @@ class VideoFilesSearcher(Frozen):
         self._reference_date: Optional[datetime.datetime] = None
 
         # начинаем поиск по файлам за 25 часов и 2 минуты назад относительно начальной точки (или текущего времени)
-        self._begin_date_delta_hours: int = 25
-        self._begin_date_delta_minutes: int = 2
+        self._reference_date_delta_hours: int = 25
+        self._reference_date_delta_minutes: int = 2
 
         # продолжительность поиска с начальной точки времени 24 часа и 0 минут
         self._video_length_hours: int = 24
@@ -121,6 +121,42 @@ class VideoFilesSearcher(Frozen):
         assert isinstance(value, datetime.datetime) or value is None
         self._reference_date = value
 
+    @property
+    def reference_date_delta_hours(self) -> int:
+        return self._reference_date_delta_hours
+
+    @reference_date_delta_hours.setter
+    def reference_date_delta_hours(self, value: int):
+        assert isinstance(value, int)
+        self._reference_date_delta_hours = value
+
+    @property
+    def reference_date_delta_minutes(self) -> int:
+        return self._reference_date_delta_minutes
+
+    @reference_date_delta_minutes.setter
+    def reference_date_delta_minutes(self, value: int):
+        assert isinstance(value, int)
+        self._reference_date_delta_minutes = value
+
+    @property
+    def video_length_hours(self) -> int:
+        return self._video_length_hours
+
+    @video_length_hours.setter
+    def video_length_hours(self, value: int):
+        assert isinstance(value, int)
+        self._video_length_hours = value
+
+    @property
+    def video_length_minutes(self) -> int:
+        return self._video_length_minutes
+
+    @video_length_minutes.setter
+    def video_length_minutes(self, value: int):
+        assert isinstance(value, int)
+        self._video_length_minutes = value
+
     def get_actual_reference_date_point(self) -> datetime.datetime:
         """
         Получить точку начала отсчета времени (от которого считаем дельту по времени НАЗАД).
@@ -143,8 +179,8 @@ class VideoFilesSearcher(Frozen):
 
         date_reference_point = self.get_actual_reference_date_point()
         begin_date = date_reference_point - datetime.timedelta(
-            hours=self._begin_date_delta_hours,
-            minutes=self._begin_date_delta_minutes
+            hours=self._reference_date_delta_hours,
+            minutes=self._reference_date_delta_minutes
         )
         search_length_minutes = (self._video_length_hours * self._MINUTES_PER_HOUR) + self._video_length_minutes
         for current_minute in range(search_length_minutes):
