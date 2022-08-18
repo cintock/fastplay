@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
+import pathlib
 from pathlib import Path
 from typing import Optional, List
 
@@ -14,6 +15,8 @@ class TaskDescription(Frozen):
         self._output_concatenation_filename: Optional[str] = None
         self._auto_add_date: bool = True
         self._prefix_strftime_format = '%Y%m%d%H%M'
+        self._output_video_width = 960
+        self._output_video_height = 540
         self.freeze()
 
     @property
@@ -44,6 +47,24 @@ class TaskDescription(Frozen):
         assert isinstance(value, bool)
         self._auto_add_date = value
 
+    @property
+    def output_video_width(self) -> int:
+        return self._output_video_width
+
+    @output_video_width.setter
+    def output_video_width(self, value: int):
+        assert isinstance(value, int)
+        self._output_video_width = value
+
+    @property
+    def output_video_height(self) -> int:
+        return self._output_video_height
+
+    @output_video_height.setter
+    def output_video_height(self, value: int) -> int:
+        assert isinstance(value, int)
+        self._output_video_height = value
+
     def get_actual_output_concatenation_filename(self) -> Path:
         """
         Получить актуальный путь к файлу, куда будет помещен результат объединения.
@@ -63,9 +84,9 @@ class TaskDescription(Frozen):
         return actual_full_filename
 
     def check(self) -> bool:
-        return all([
-            self._output_concatenation_filename is not None
-        ])
+        result = self._output_concatenation_filename is not None
+        result = result and pathlib.Path(self._output_concatenation_filename).parent.exists()
+        return result
 
     def __str__(self) -> str:
         return f'Task (input[{self._input_files}]: output[{self._output_concatenation_filename}])'
