@@ -14,9 +14,9 @@ class TaskDescription(Frozen):
         self._input_files: List[str] = []
         self._output_concatenation_filename: Optional[str] = None
         self._auto_add_date: bool = True
-        self._prefix_strftime_format = '%Y%m%d%H%M'
-        self._output_video_width = 960
-        self._output_video_height = 540
+        self._prefix_strftime_format: str = '%Y%m%d%H%M'
+        self._output_video_width: int = 960
+        self._output_video_height: int = 540
         self.freeze()
 
     @property
@@ -61,7 +61,7 @@ class TaskDescription(Frozen):
         return self._output_video_height
 
     @output_video_height.setter
-    def output_video_height(self, value: int) -> int:
+    def output_video_height(self, value: int):
         assert isinstance(value, int)
         self._output_video_height = value
 

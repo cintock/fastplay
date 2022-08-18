@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 import time
 from typing import Tuple
-
 import cv2
+from utils.frozen import Frozen
 
 
-class VideoConcatenator:
+class VideoConcatenator(Frozen):
     _EOF_FILE_ERROR_FRAMES_COUNT = 150
     _STABILISATION_FRAMES_COUNT = 100
 
     def __init__(self, output_video: cv2.VideoWriter, out_frame_width: int, out_frame_height):
+        super().__init__()
         assert isinstance(output_video, cv2.VideoWriter)
         assert isinstance(out_frame_width, int)
         assert isinstance(out_frame_height, int)
@@ -19,6 +20,17 @@ class VideoConcatenator:
         self._output_video = output_video
         self._frame_times: float = 0.0
         self._frame_count: int = 0
+        self._skipped_frames_count = 110
+        self.freeze()
+
+    @property
+    def skipped_frames_count(self) -> int:
+        return self._skipped_frames_count
+
+    @skipped_frames_count.setter
+    def skipped_frames_count(self, value: int):
+        assert isinstance(value, int)
+        self._skipped_frames_count = value
 
     def append_video(self, input_video: cv2.VideoCapture):
         assert isinstance(input_video, cv2.VideoCapture)
@@ -59,7 +71,7 @@ class VideoConcatenator:
                     self._output_video.write(frame)
 
                     # пропускаем кадры (решение CAP_PROP_POS_FRAMES не срабатывает как надо для данного типа видео)
-                    for i in range(110):
+                    for i in range(self._skipped_frames_count):
                         input_video.grab()
 
                     key = cv2.waitKey(1)

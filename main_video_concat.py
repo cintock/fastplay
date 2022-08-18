@@ -10,7 +10,7 @@ from video_files_searcher import VideoFilesSearcher
 
 def process_task(task_description: TaskDescription):
     assert isinstance(task_description, TaskDescription)
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*'H264')
     output_video_resolution = (task_description.output_video_width, task_description.output_video_height)
     output_video = cv2.VideoWriter(
         str(task_description.get_actual_output_concatenation_filename()),
@@ -19,7 +19,12 @@ def process_task(task_description: TaskDescription):
         output_video_resolution
     )
     try:
-        concatenator = VideoConcatenator(output_video, task_description.output_video_width, task_description.output_video_height)
+        concatenator = VideoConcatenator(
+            output_video,
+            task_description.output_video_width,
+            task_description.output_video_height
+        )
+        concatenator.skipped_frames_count = 110
         for file in task_description.input_files:
             input_video = cv2.VideoCapture(file)
             try:
