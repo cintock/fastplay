@@ -17,6 +17,7 @@ class TaskDescription(Frozen):
         self._prefix_strftime_format: str = '%Y%m%d%H%M'
         self._output_video_width: int = 960
         self._output_video_height: int = 540
+        self._skipped_frames_count: int = 110
         self.freeze()
 
     @property
@@ -64,6 +65,15 @@ class TaskDescription(Frozen):
     def output_video_height(self, value: int):
         assert isinstance(value, int)
         self._output_video_height = value
+
+    @property
+    def skipped_frames_count(self):
+        return self._skipped_frames_count
+
+    @skipped_frames_count.setter
+    def skipped_frames_count(self, value: int):
+        assert isinstance(value, int)
+        self._skipped_frames_count = value
 
     def get_actual_output_concatenation_filename(self) -> Path:
         """

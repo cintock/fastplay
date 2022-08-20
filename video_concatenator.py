@@ -10,6 +10,9 @@ class VideoConcatenator(Frozen):
     _EOF_FILE_ERROR_FRAMES_COUNT = 150
     _STABILISATION_FRAMES_COUNT = 100
 
+    _KEY_ESC = 27
+    _KEY_SPACE = 32
+
     def __init__(self, output_video: cv2.VideoWriter, out_frame_width: int, out_frame_height):
         super().__init__()
         assert isinstance(output_video, cv2.VideoWriter)
@@ -21,6 +24,10 @@ class VideoConcatenator(Frozen):
         self._frame_times: float = 0.0
         self._frame_count: int = 0
         self._skipped_frames_count = 110
+
+        # флаг активируется, если пользователь запросил выход
+        self._exit_requested = False
+
         self.freeze()
 
     @property
@@ -43,7 +50,7 @@ class VideoConcatenator(Frozen):
         # счетчик удачно полученных подряд кадров
         good_frames = 0
 
-        while input_video.isOpened() and key != 27 and not eof:
+        while input_video.isOpened() and key not in [self._KEY_ESC, self._KEY_SPACE] and not eof:
             start_t = time.time()
 
             ret = input_video.grab()
@@ -82,6 +89,8 @@ class VideoConcatenator(Frozen):
                 else:
                     good_frames = 0
                     print('Can not retrieve grabbed frame!')
+        if key == self._KEY_ESC:
+            self._exit_requested = True
 
     def get_avg_frame_time(self) -> float:
         return self._frame_times / self._frame_count
@@ -89,3 +98,6 @@ class VideoConcatenator(Frozen):
     def reset_avg_frame_time(self):
         self._frame_times = 0.0
         self._frame_count = 0
+
+    def is_exit_requested(self):
+        return self._exit_requested
