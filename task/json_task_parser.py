@@ -22,6 +22,7 @@ class JsonTaskParser:
         pass
 
     def tasks_from_json(self, text: str) -> typing.List[TaskDescription]:
+        text = self._delete_comments(text)
         root_json_dict = json.loads(text)
         tasks = root_json_dict['tasks']
         tasks_description = []
@@ -37,6 +38,21 @@ class JsonTaskParser:
         object_type = task_dict.get('type')
         if object_type != 'process_video_task':
             raise JsonTaskParserException(f'Ожидался тип process_video_task, получен "{object_type}"')
+
+        task = TaskDescription()
+        task.input_files = self._get_input_files(task_dict)
+        try:
+            task.output_concatenation_filename = task_dict['output_concatenation_filename']
+        except KeyError:
+            raise JsonTaskParserException('Не задан параметр output_concatenation_filename')
+
+        task.output_video_width = task_dict.get('output_video_width', task.output_video_width)
+        task.output_video_height = task_dict.get('output_video_height', task.output_video_height)
+        task.skipped_frames_count = task_dict.get('skipped_frames_count', task.skipped_frames_count)
+
+        return task
+
+    def _get_input_files(self, task_dict: dict) -> typing.List[str]:
         input_files = task_dict.get('input_files')
         video_searcher = task_dict.get('video_searcher')
         if input_files is not None:
@@ -72,13 +88,14 @@ class JsonTaskParser:
             input_files = searcher.search_video_files(video_searcher['dir'])
             print('Заданы настройки поисковика:')
             print(searcher)
-            print('Поисковик нашел следующие видео по критериям:')
+            print(f'Поисковик нашел следующие видео ({len(input_files)}) по критериям:')
             print('--- начало ---')
             for input_file in input_files:
                 print(input_file)
             print('--- конец ---')
+        return input_files
 
-        task = TaskDescription()
-        task.input_files = input_files
-
-        return task
+    @staticmethod
+    def _delete_comments(text: str) -> str:
+        lines = text.splitlines()
+        return '\n'.join([line for line in lines if not line.startswith('--')])

@@ -17,16 +17,32 @@ if __name__ == '__main__':
     args = argument_parser.parse_args()
     json_config_filename = args.json_config_filename
     print(f'Получен файл с настройками: {json_config_filename}')
-    exit_code = 1
+    exit_code = 0
     try:
         if os.path.isfile(json_config_filename):
             with open(json_config_filename, 'r') as file:
                 file_content = file.read()
-                parser = JsonTaskParser()
-                tasks = parser.tasks_from_json(file_content)
+
+            parser = JsonTaskParser()
+            tasks = parser.tasks_from_json(file_content)
+            for task in tasks:
+                print(task)
+
+            all_task_correct = True
+            for task in tasks:
+                if not task.check():
+                    all_task_correct = False
+                    print('Не могу обработать задачу. Задача не корректная: {0}'.format(task))
+
+            is_interrupted = False
+            if all_task_correct:
+                task_processor = TaskProcessor()
                 for task in tasks:
-                    print(task)
-                exit_code = 0
+                    task_processor.process_task(task)
+                    if task_processor.is_exit_requested():
+                        exit_code = 4
+                        break
+
         else:
             print(f'Файл с настройками не найден: {json_config_filename}')
             exit_code = 2
@@ -35,6 +51,7 @@ if __name__ == '__main__':
         exit_code = 3
 
     exit(exit_code)
+
     # searcher = VideoFilesSearcher()
     # searcher.strftime_pattern = '%Y%m%d%H'
     # searcher.suffix_pattern = '*.h264'
@@ -59,18 +76,5 @@ if __name__ == '__main__':
     #
     # processed_tasks = [cam2_task, cam3_task]
     #
-    # all_task_correct = True
-    # for task in processed_tasks:
-    #     if not task.check():
-    #         all_task_correct = False
-    #         print('Can not process task. Task is not correct: {0}'.format(task))
-    #
-    # if all_task_correct:
-    #     task_processor = TaskProcessor()
-    #     try:
-    #         for task in processed_tasks:
-    #             task_processor.process_task(task)
-    #             if task_processor.is_exit_requested():
-    #                 break
-    #     finally:
-    #         cv2.destroyAllWindows()
+
+

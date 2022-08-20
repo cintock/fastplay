@@ -41,6 +41,7 @@ class TaskProcessor:
                     input_video.release()
         finally:
             output_video.release()
+            cv2.destroyAllWindows()
 
     def is_exit_requested(self) -> bool:
         return self._is_exit_requested
