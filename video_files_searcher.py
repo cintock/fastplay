@@ -213,6 +213,19 @@ class VideoFilesSearcher(Frozen):
                     video_files_set.add(file)
         return video_files
 
+    def __str__(self):
+        res = \
+            f'--- Поисковик видео файлов ---\n' \
+            f'    prefix_pattern: "{self._prefix_pattern}"\n' \
+            f'    suffix_pattern: "{self._suffix_pattern}"\n' \
+            f'    strftime_pattern: "{self._strftime_pattern}"\n' \
+            f'    video length {self._video_length_hours} часов {self._video_length_minutes}\n' \
+            f'    reference_date: "{self._reference_date}" (actual {self.get_actual_reference_date_point()})\n' \
+            f'    reference date delta: {self._reference_date_delta_hours} часов ' \
+            f'{self._reference_date_delta_minutes} минут\n' \
+            f'--- конец ---\n'
+        return res
+
 
 if __name__ == '__main__':
     # тестирование
