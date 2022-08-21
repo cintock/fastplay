@@ -99,4 +99,15 @@ class TaskDescription(Frozen):
         return result
 
     def __str__(self) -> str:
-        return f'Task (input[{self._input_files}]: output[{self._output_concatenation_filename}])'
+        return \
+            f'--- Описание задачи ---\n' \
+            f'    Количество входных файлов: {len(self._input_files)}\n' \
+            f'    Имя выходного файла с результатами объединения "{self._output_concatenation_filename}"\n' \
+            f'    Пример результирующего имени выходного файла "{self.get_actual_output_concatenation_filename()}"\n' \
+            f'    Автоматически добавлять префикс-дату к имени выходного файла: ' \
+            f'{"Да" if self._auto_add_date else "Нет"}\n' \
+            f'    Формат префикса strftime для выходного файла: {self._prefix_strftime_format}\n' \
+            f'    Ширина выходного видео: {self._output_video_width}\n' \
+            f'    Высота выходного видео: {self._output_video_height}\n' \
+            f'    Пропускать каждый {self._skipped_frames_count} кадр\n' \
+            f'--- конец ---'
