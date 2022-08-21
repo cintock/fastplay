@@ -3,19 +3,17 @@
 import argparse
 import os.path
 
-import cv2
-
 from task.json_task_parser import JsonTaskParser, JsonTaskParserException
-from task.task_description import TaskDescription
 from task_processor import TaskProcessor
-from video_files_searcher import VideoFilesSearcher
 
 
 if __name__ == '__main__':
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument('json_config_filename')
+    argument_parser.add_argument('--only_info', '-i', action='store_true')
     args = argument_parser.parse_args()
     json_config_filename = args.json_config_filename
+    only_info = args.only_info
     print(f'Получен файл с настройками: {json_config_filename}')
     exit_code = 0
     try:
@@ -34,14 +32,15 @@ if __name__ == '__main__':
                     all_task_correct = False
                     print('Не могу обработать задачу. Задача не корректная: {0}'.format(task))
 
-            is_interrupted = False
-            if all_task_correct:
-                task_processor = TaskProcessor()
-                for task in tasks:
-                    task_processor.process_task(task)
-                    if task_processor.is_exit_requested():
-                        exit_code = 4
-                        break
+            if not only_info:
+                is_interrupted = False
+                if all_task_correct:
+                    task_processor = TaskProcessor()
+                    for task in tasks:
+                        task_processor.process_task(task)
+                        if task_processor.is_exit_requested():
+                            exit_code = 4
+                            break
 
         else:
             print(f'Файл с настройками не найден: {json_config_filename}')
