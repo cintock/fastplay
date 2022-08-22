@@ -66,11 +66,11 @@ if __name__ == '__main__':
     object_saver = ObjectSaver()
     object_saver.resize_coef = resize_coef
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_video = cv2.VideoWriter('person.mp4', fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
+    out_video = cv2.VideoWriter('T:\CamRecordAnalysis\person.mp4', fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
     try:
 
-        video = cv2.VideoCapture(r'D:\MyData\Files\MyProjects\scripts\videocam\out2.mp4')
+        video = cv2.VideoCapture(r'T:\Record\ip cam vet 3\1\20220822100000.h264')
         # video = cv2.VideoCapture(r'T:\Record\cam vet 2\1\20220812120000.h264')
         try:
             eof = False

@@ -34,7 +34,6 @@ class JsonTaskParser:
 
     def task_from_dict(self, task_dict: dict) -> typing.Optional[TaskDescription]:
         assert isinstance(task_dict, dict)
-        task = None
         object_type = task_dict.get('type')
         if object_type != 'process_video_task':
             raise JsonTaskParserException(f'Ожидался тип process_video_task, получен "{object_type}"')

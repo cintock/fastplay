@@ -12,10 +12,10 @@
             "type": "process_video_task",
             "video_searcher":
             {
-                "video_length_hours": 24,
-                "video_length_minutes": 0,
-                "reference_date_delta_hours": 25,
-                "reference_date_delta_minutes": 2,
+                "video_length_hours": 0,
+                "video_length_minutes": 10,
+                "reference_date_delta_hours": 4,
+                "reference_date_delta_minutes": 0,
                 "strftime_pattern": "%Y%m%d%H",
                 "suffix_pattern": "*.h264",
                 "dir": "T:\\Record\\cam vet 2\\1\\"
@@ -28,10 +28,10 @@
             "type": "process_video_task",
             "video_searcher": 
             {
-                "video_length_hours": 24,
-                "video_length_minutes": 0,
-                "reference_date_delta_hours": 25,
-                "reference_date_delta_minutes": 2,
+                "video_length_hours": 0,
+                "video_length_minutes": 10,
+                "reference_date_delta_hours": 4,
+                "reference_date_delta_minutes": 0,
                 "strftime_pattern": "%Y%m%d%H",
                 "suffix_pattern": "*.h264",
                 "dir": "T:\\Record\\ip cam vet 3\\1"             
