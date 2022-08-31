@@ -1,26 +1,18 @@
 {
     "tasks": [
---      {
---          "type": "process_video_task",
---          "input_files": [
---              "T:\\Record\\cam vet 2\\1\\20220820130000.h264", 
---              "T:\\Record\\cam vet 2\\1\\20220820140000.h264"
---          ],
---          "output_concatenation_filename": "T:\\CamRecordAnalysis\\test.mkv"
---      },
         {
             "type": "process_video_task",
             "video_searcher":
             {
-                "video_length_hours": 0,
-                "video_length_minutes": 10,
-                "reference_date_delta_hours": 4,
-                "reference_date_delta_minutes": 0,
+                "video_length_hours": 1,
+                "video_length_minutes": 1,
+                "reference_date_delta_hours": 2,
+                "reference_date_delta_minutes": 1,
                 "strftime_pattern": "%Y%m%d%H",
                 "suffix_pattern": "*.h264",
                 "dir": "T:\\Record\\cam vet 2\\1\\"
             },
-            "output_concatenation_filename": "T:\\CamRecordAnalysis\\cam2.mkv",
+            "output_concatenation_filename": "T:\\CamRecordAnalysis\\short_cam2.mkv",
             "output_video_width": 1920,
             "output_video_height": 1080
         },
@@ -28,15 +20,15 @@
             "type": "process_video_task",
             "video_searcher": 
             {
-                "video_length_hours": 0,
-                "video_length_minutes": 10,
-                "reference_date_delta_hours": 4,
-                "reference_date_delta_minutes": 0,
+                "video_length_hours": 1,
+                "video_length_minutes": 1,
+                "reference_date_delta_hours": 2,
+                "reference_date_delta_minutes": 1,
                 "strftime_pattern": "%Y%m%d%H",
                 "suffix_pattern": "*.h264",
                 "dir": "T:\\Record\\ip cam vet 3\\1"             
             },
-            "output_concatenation_filename": "T:\\CamRecordAnalysis\\cam3.mkv",
+            "output_concatenation_filename": "T:\\CamRecordAnalysis\\short_cam3.mkv",
             "output_video_width": 1920,
             "output_video_height": 1080               
         }            

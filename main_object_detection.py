@@ -3,16 +3,23 @@
 import typing
 
 import cv2
-# PROCESSED_FRAME_RESOLUTION = (640, 360)
 import numpy
 
 from objects_saver import ObjectSaver
 
-VIDEO_FRAME_RESOLUTION = (1920, 1080)
-PROCESSED_FRAME_RESOLUTION = (768, 432)
+VIDEO_FRAME_RESOLUTION_WIDTH = 1920
+VIDEO_FRAME_RESOLUTION_HEIGHT = 1080
 
 
 class ObjectDetector:
+    # разрешение кадра, на котором определяются объекты
+    # (размер картинки должен соответствовать размерам поисковых шаблонов)
+    _PROCESSED_FRAME_RESOLUTION_WIDTH = 768
+    _PROCESSED_FRAME_RESOLUTION_HEIGHT = 432
+
+    _NUMPY_ARR_WIDTH_INDEX = 1
+    _NUMPY_ARR_HEIGHT_INDEX = 0
+
     # todo: привести этот класс в порядок
     def __init__(self):
         self._hog: typing.Optional[cv2.HOGDescriptor] = None
@@ -20,14 +27,24 @@ class ObjectDetector:
         self._out_video: typing.Optional[cv2.VideoWriter] = None
         self._object_saver: typing.Optional[ObjectSaver] = None
         self._resize_coef: typing.Optional[float] = None
+        self._video_frame_width: typing.Optional[int] = None
+        self._video_frame_height: typing.Optional[int] = None
 
     def set_output_filename(self, name: str):
         assert isinstance(name, str)
         self._output_filename = name
 
     def process_frame(self, frame: numpy.ndarray):
-        frame = cv2.resize(frame, VIDEO_FRAME_RESOLUTION)
-        processed_frame = cv2.resize(frame, PROCESSED_FRAME_RESOLUTION)
+        if (
+            frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._video_frame_width or
+            frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._video_frame_height
+        ):
+            raise Exception('Размер обрабатываемого кадра не соответствует')
+
+        processed_frame = cv2.resize(
+            frame,
+            (self._PROCESSED_FRAME_RESOLUTION_WIDTH, self._PROCESSED_FRAME_RESOLUTION_HEIGHT)
+        )
         boxes, weights = self._hog.detectMultiScale(processed_frame, 0, (8, 8))
 
         if len(weights) > 0:
@@ -48,11 +65,21 @@ class ObjectDetector:
                     cv2.imshow('detection', frame)
                     self._out_video.write(frame)
 
-    def begin_detection(self):
+    def begin_detection(self, frame_width: int, frame_height: int):
+        assert isinstance(frame_width, int)
+        assert isinstance(frame_height, int)
+        self._video_frame_width = frame_width
+        self._video_frame_height = frame_height
         fourcc = cv2.VideoWriter_fourcc(*'avc1')
-        self._out_video = cv2.VideoWriter(self._output_filename, fourcc, 2.0, VIDEO_FRAME_RESOLUTION)
+        self._out_video = cv2.VideoWriter(
+            self._output_filename, fourcc, 2.0, (self._video_frame_width, self._video_frame_height))
 
-        self._resize_coef = float(VIDEO_FRAME_RESOLUTION[0]) / PROCESSED_FRAME_RESOLUTION[0]
+        self._resize_coef = float(self._video_frame_width) / float(self._PROCESSED_FRAME_RESOLUTION_WIDTH)
+
+        # соотношение сторон должно соответствовать
+        if round(float(self._video_frame_height) / float(self._PROCESSED_FRAME_RESOLUTION_HEIGHT), 4) != \
+                round(self._resize_coef, 4):
+            raise Exception('Соотношение сторон изображения должно соответствовать')
 
         self._hog = cv2.HOGDescriptor((64, 128), (16, 16), (8, 8), (8, 8), 9)
         self._hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -110,7 +137,7 @@ if __name__ == '__main__':
     print('object detection')
     detector = ObjectDetector()
     detector.set_output_filename('person.mp4')
-    detector.begin_detection()
+    detector.begin_detection(1920, 1080)
     try:
         video = cv2.VideoCapture(r'T:\CamRecordAnalysis\202208221417_cam3.mkv')
         # video = cv2.VideoCapture(r'T:\Record\cam vet 2\1\20220812120000.h264')
