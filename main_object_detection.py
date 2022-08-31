@@ -34,40 +34,13 @@ class ObjectDetector:
         assert isinstance(name, str)
         self._output_filename = name
 
-    def process_frame(self, frame: numpy.ndarray):
-        if (
-            frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._video_frame_width or
-            frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._video_frame_height
-        ):
-            raise Exception('Размер обрабатываемого кадра не соответствует')
-
-        processed_frame = cv2.resize(
-            frame,
-            (self._PROCESSED_FRAME_RESOLUTION_WIDTH, self._PROCESSED_FRAME_RESOLUTION_HEIGHT)
-        )
-        boxes, weights = self._hog.detectMultiScale(processed_frame, 0, (8, 8))
-
-        if len(weights) > 0:
-            for box, weight in zip(boxes, weights):
-                if weight > 0.7:
-                    x1, y1, w, h = box
-
-                    self._object_saver.save_object(
-                        frame, int(x1), int(y1), int(w), int(h), weight=weight)
-
-                    self._draw_object_zone(
-                        frame, float(weight), float(self._resize_coef),
-                        int(x1), int(y1), int(w), int(h),
-                        small_rectangle=False
-                    )
-
-                    self._draw_object_zone(frame, None, self._resize_coef, 0, 0, 64, 128, color=(0, 0, 0))
-                    cv2.imshow('detection', frame)
-                    self._out_video.write(frame)
-
     def begin_detection(self, frame_width: int, frame_height: int):
         assert isinstance(frame_width, int)
         assert isinstance(frame_height, int)
+
+        if self._output_filename is None:
+            raise Exception('Output filename is not defined')
+
         self._video_frame_width = frame_width
         self._video_frame_height = frame_height
         fourcc = cv2.VideoWriter_fourcc(*'avc1')
@@ -85,10 +58,44 @@ class ObjectDetector:
         self._hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
         self._object_saver = ObjectSaver()
-        self._object_saver.resize_coef = self._resize_coef
+        self._object_saver.resize_coef = 1.0
+
+    def process_frame(self, frame: numpy.ndarray):
+        if (
+            frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._video_frame_width or
+            frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._video_frame_height
+        ):
+            raise Exception('Размер обрабатываемого кадра не соответствует')
+
+        processed_frame = cv2.resize(
+            frame,
+            (self._PROCESSED_FRAME_RESOLUTION_WIDTH, self._PROCESSED_FRAME_RESOLUTION_HEIGHT)
+        )
+        boxes, weights = self._hog.detectMultiScale(processed_frame, 0, (8, 8))
+
+        if len(weights) > 0:
+            for box, weight in zip(boxes, weights):
+                if weight > 0.7:
+                    x1, y1, w, h = self._resized_box_to_normal(box)
+
+                    self._object_saver.save_object(
+                        frame, int(x1), int(y1), int(w), int(h), weight=weight)
+
+                    self._draw_object_zone(
+                        frame, float(weight), float(1.0),
+                        int(x1), int(y1), int(w), int(h),
+                        small_rectangle=False
+                    )
+
+                    self._draw_object_zone(frame, None, self._resize_coef, 0, 0, 64, 128, color=(0, 0, 0))
+                    cv2.imshow('detection', frame)
+                    self._out_video.write(frame)
 
     def end_detection(self):
         self._out_video.release()
+
+    def _resized_box_to_normal(self, box: typing.Iterable[typing.Union[int, float]]) -> numpy.ndarray:
+        return numpy.array(box) * self._resize_coef
 
     def _draw_object_zone(
             self,
