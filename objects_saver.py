@@ -14,17 +14,7 @@ class ObjectSaver(Frozen):
     def __init__(self):
         super().__init__()
         self._n = 0
-        self._resize_coef: float = 1.0
         self.freeze()
-
-    @property
-    def resize_coef(self):
-        return self._resize_coef
-
-    @resize_coef.setter
-    def resize_coef(self, value: float):
-        assert isinstance(value, float)
-        self._resize_coef = value
 
     def reset(self):
         self._n = 0
@@ -39,8 +29,8 @@ class ObjectSaver(Frozen):
         x2 = x1 + w
         y2 = y1 + h
         obj_image = frame[
-                    round(y1 * self._resize_coef): round(y2 * self._resize_coef),
-                    round(x1 * self._resize_coef): round(x2 * self._resize_coef)
+                    round(y1): round(y2),
+                    round(x1): round(x2)
         ]
         self._n += 1
         cv2.imshow('person', obj_image)
