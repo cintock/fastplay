@@ -14,11 +14,16 @@ class ObjectDetector:
     _PROCESSED_FRAME_RESOLUTION_WIDTH = 768
     _PROCESSED_FRAME_RESOLUTION_HEIGHT = 432
 
+    # какую часть выходного кадра будет занимать изображение
+    _IMAGE_COEF_FULL_FRAME = 0.9
+
     _NUMPY_ARR_WIDTH_INDEX = 1
     _NUMPY_ARR_HEIGHT_INDEX = 0
 
     # todo: привести этот класс в порядок
     def __init__(self):
+        self._left_shift_width: typing.Optional[int] = None
+        self._top_panel_height: typing.Optional[int] = None
         self._hog: typing.Optional[cv2.HOGDescriptor] = None
         self._output_filename: typing.Optional[str] = None
         self._out_video: typing.Optional[cv2.VideoWriter] = None
@@ -71,12 +76,12 @@ class ObjectDetector:
             winStride=(8, 8)
         )
 
-        output_frame_image_height = round(self._video_frame_height * 0.9)
-        output_frame_image_width = round(self._video_frame_width * 0.9)
+        output_frame_image_height = round(self._video_frame_height * self._IMAGE_COEF_FULL_FRAME)
+        output_frame_image_width = round(self._video_frame_width * self._IMAGE_COEF_FULL_FRAME)
         left_right_side_width = self._video_frame_width - output_frame_image_width
 
-        top_panel_height: int = self._video_frame_height - output_frame_image_height
-        left_shift_width: int = round(float(left_right_side_width) / 2.0)
+        self._top_panel_height: int = self._video_frame_height - output_frame_image_height
+        self._left_shift_width: int = round(float(left_right_side_width) / 2.0)
 
         output_frame = numpy.zeros(shape=input_frame.shape, dtype=input_frame.dtype)
         output_frame_image = cv2.resize(
@@ -87,10 +92,10 @@ class ObjectDetector:
         # поместим на результирующий кадр уменьшенное изображение
         output_frame[
             # верхняя панель занимает место сверху, поэтому отступаем от нее
-            top_panel_height:self._video_frame_height,
+            self._top_panel_height:self._video_frame_height,
 
             # левая область и правая область обрамляют изображение посередине
-            left_shift_width:self._video_frame_width - left_shift_width
+            self._left_shift_width:self._video_frame_width - self._left_shift_width
         ] = output_frame_image
 
         # если обнаружены объекты
@@ -104,15 +109,19 @@ class ObjectDetector:
                     x2_det = x1_det + width_det
                     y2_det = y1_det + height_det
 
-                    x1, y1 = self._resize_point_to_normal(x1_det, y1_det)
-                    x2, y2 = self._resize_point_to_normal(x2_det, y2_det)
+                    x1, y1 = self._coord_processed_image_to_image(x1_det, y1_det)
+                    x2, y2 = self._coord_processed_image_to_image(x2_det, y2_det)
+
+                    x1, y1 = self._coord_image_to_full_frame(x1, y1)
+                    x2, y2 = self._coord_image_to_full_frame(x2, y2)
 
                     self._draw_object_zone(
                         output_frame, float(weight),
                         x1, y1, x2, y2
                     )
 
-            example_box_x2, example_box_y2 = self._resize_point_to_normal(self._hog.winSize[0], self._hog.winSize[1])
+            example_box_x2, example_box_y2 = self._coord_processed_image_to_image(self._hog.winSize[0], self._hog.winSize[1])
+            example_box_x2, example_box_y2 = self._coord_image_to_full_frame(example_box_x2, example_box_y2)
             width, height = example_box_x2, example_box_y2
             self._draw_rectangle(output_frame, 0, 0, width, height, color=(0, 0, 0))
             cv2.imshow('detection', output_frame)
@@ -121,10 +130,15 @@ class ObjectDetector:
     def end_detection(self):
         self._out_video.release()
 
-    def _resize_point_to_normal(self, x, y) -> typing.Tuple[int, int]:
+    def _coord_processed_image_to_image(self, x, y) -> typing.Tuple[int, int]:
         x_image_frame = x * self._resize_coef
         y_image_frame = y * self._resize_coef
         return x_image_frame, y_image_frame
+
+    def _coord_image_to_full_frame(self, x: int, y: int) -> typing.Tuple[int, int]:
+        x_full = round((x * self._IMAGE_COEF_FULL_FRAME) + self._top_panel_height)
+        y_full = round((y * self._IMAGE_COEF_FULL_FRAME) + self._left_shift_width)
+        return x_full, y_full
 
     def _draw_rectangle(
         self,
