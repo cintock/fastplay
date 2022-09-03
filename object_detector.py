@@ -22,7 +22,6 @@ class ObjectDetector:
         self._hog: typing.Optional[cv2.HOGDescriptor] = None
         self._output_filename: typing.Optional[str] = None
         self._out_video: typing.Optional[cv2.VideoWriter] = None
-        self._object_saver: typing.Optional[ObjectSaver] = None
         self._resize_coef: typing.Optional[float] = None
         self._video_frame_width: typing.Optional[int] = None
         self._video_frame_height: typing.Optional[int] = None
@@ -53,8 +52,6 @@ class ObjectDetector:
 
         self._hog = cv2.HOGDescriptor()
         self._hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
-        self._object_saver = ObjectSaver()
 
     def process_frame(self, input_frame: numpy.ndarray):
         if (
@@ -100,28 +97,34 @@ class ObjectDetector:
         if len(boxes) > 0:
             for box, weight in zip(boxes, weights):
                 if weight > 0.7:
-                    x1, y1, w, h = self._resized_box_to_normal(box)
+                    x1_det = box[0]
+                    y1_det = box[1]
+                    width_det = box[2]
+                    height_det = box[3]
+                    x2_det = x1_det + width_det
+                    y2_det = y1_det + height_det
 
-                    self._object_saver.save_object(
-                        output_frame, int(x1), int(y1), int(w), int(h), weight=weight)
+                    x1, y1 = self._resize_point_to_normal(x1_det, y1_det)
+                    x2, y2 = self._resize_point_to_normal(x2_det, y2_det)
 
                     self._draw_object_zone(
                         output_frame, float(weight),
-                        int(x1), int(y1), int(w), int(h),
-                        small_rectangle=False
+                        x1, y1, x2, y2
                     )
 
-            example_box = self._resized_box_to_normal((0, 0, *self._hog.winSize))
-            x1, y1, width, height = example_box
-            self._draw_rectangle(output_frame, x1, y1, width, height, color=(0, 0, 0))
+            example_box_x2, example_box_y2 = self._resize_point_to_normal(self._hog.winSize[0], self._hog.winSize[1])
+            width, height = example_box_x2, example_box_y2
+            self._draw_rectangle(output_frame, 0, 0, width, height, color=(0, 0, 0))
             cv2.imshow('detection', output_frame)
             self._out_video.write(output_frame)
 
     def end_detection(self):
         self._out_video.release()
 
-    def _resized_box_to_normal(self, box: typing.Iterable[typing.Union[int, float]]) -> numpy.ndarray:
-        return numpy.array(box) * self._resize_coef
+    def _resize_point_to_normal(self, x, y) -> typing.Tuple[int, int]:
+        x_image_frame = x * self._resize_coef
+        y_image_frame = y * self._resize_coef
+        return x_image_frame, y_image_frame
 
     def _draw_rectangle(
         self,
@@ -149,18 +152,16 @@ class ObjectDetector:
             frame: numpy.ndarray,
             weight: typing.Optional[float],
             x1: typing.Union[int, float], y1: typing.Union[int, float],
-            w: typing.Union[int, float], h: typing.Union[int, float],
-            color: tuple = (255, 255, 0),
-            small_rectangle: bool = False
+            x2: typing.Union[int, float], y2: typing.Union[int, float],
+            color: tuple = (255, 255, 0)
     ):
         assert isinstance(frame, numpy.ndarray)
         assert isinstance(weight, float) or weight is None
+        assert x1 <= x2
+        assert y1 <= y2
 
-        if small_rectangle:
-            x1 += round(w * 0.1)
-            y1 += round(h * 0.07)
-            w = round(w * 0.8)
-            h = round(h * 0.8)
+        w = x2 - x1
+        h = y2 - y1
         self._draw_rectangle(frame, x1, y1, w, h, color)
 
         if weight is not None:
