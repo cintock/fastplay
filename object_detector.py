@@ -24,14 +24,16 @@ class ObjectDetector:
     _NUMPY_ARR_HEIGHT_INDEX = 0
 
     def __init__(self):
+        self._output_only_image_width: typing.Optional[int] = None
+        self._output_only_image_height: typing.Optional[int] = None
         self._left_shift_width: typing.Optional[int] = None
         self._top_panel_height: typing.Optional[int] = None
         self._hog: typing.Optional[cv2.HOGDescriptor] = None
         self._output_filename: typing.Optional[str] = None
         self._out_video: typing.Optional[cv2.VideoWriter] = None
-        self._resize_coef: typing.Optional[float] = None
-        self._video_frame_width: typing.Optional[int] = None
-        self._video_frame_height: typing.Optional[int] = None
+        self._detection_resize_coef: typing.Optional[float] = None
+        self._full_frame_width: typing.Optional[int] = None
+        self._full_frame_height: typing.Optional[int] = None
 
     def set_output_filename(self, name: str):
         assert isinstance(name, str)
@@ -44,26 +46,33 @@ class ObjectDetector:
         if self._output_filename is None:
             raise Exception('Output filename is not defined')
 
-        self._video_frame_width = frame_width
-        self._video_frame_height = frame_height
+        self._full_frame_width = frame_width
+        self._full_frame_height = frame_height
         fourcc = cv2.VideoWriter_fourcc(*'avc1')
         self._out_video = cv2.VideoWriter(
-            self._output_filename, fourcc, 2.0, (self._video_frame_width, self._video_frame_height))
+            self._output_filename, fourcc, 2.0, (self._full_frame_width, self._full_frame_height))
 
-        self._resize_coef = float(self._video_frame_width) / float(self._PROCESSED_FRAME_RESOLUTION_WIDTH)
+        self._detection_resize_coef = float(self._full_frame_width) / float(self._PROCESSED_FRAME_RESOLUTION_WIDTH)
 
         # соотношение сторон должно соответствовать
-        if round(float(self._video_frame_height) / float(self._PROCESSED_FRAME_RESOLUTION_HEIGHT), 4) != \
-                round(self._resize_coef, 4):
+        if round(float(self._full_frame_height) / float(self._PROCESSED_FRAME_RESOLUTION_HEIGHT), 4) != \
+                round(self._detection_resize_coef, 4):
             raise Exception('Соотношение сторон изображения должно соответствовать')
+
+        self._output_only_image_height = round(self._full_frame_height * self._IMAGE_COEF_FULL_FRAME)
+        self._output_only_image_width = round(self._full_frame_width * self._IMAGE_COEF_FULL_FRAME)
+        left_right_side_width = self._full_frame_width - self._output_only_image_width
+
+        self._top_panel_height: int = self._full_frame_height - self._output_only_image_height
+        self._left_shift_width: int = round(float(left_right_side_width) / 2.0)
 
         self._hog = cv2.HOGDescriptor()
         self._hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
     def process_frame(self, input_frame: numpy.ndarray):
         if (
-            input_frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._video_frame_width or
-            input_frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._video_frame_height
+            input_frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._full_frame_width or
+            input_frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._full_frame_height
         ):
             raise Exception('Размер обрабатываемого кадра не соответствует')
 
@@ -78,26 +87,19 @@ class ObjectDetector:
             winStride=(8, 8)
         )
 
-        output_frame_image_height = round(self._video_frame_height * self._IMAGE_COEF_FULL_FRAME)
-        output_frame_image_width = round(self._video_frame_width * self._IMAGE_COEF_FULL_FRAME)
-        left_right_side_width = self._video_frame_width - output_frame_image_width
-
-        self._top_panel_height: int = self._video_frame_height - output_frame_image_height
-        self._left_shift_width: int = round(float(left_right_side_width) / 2.0)
-
         output_frame = numpy.zeros(shape=input_frame.shape, dtype=input_frame.dtype)
         output_frame_image = cv2.resize(
             input_frame,
-            (output_frame_image_width, output_frame_image_height),
+            (self._output_only_image_width, self._output_only_image_height),
         )
 
         # поместим на результирующий кадр уменьшенное изображение
         output_frame[
             # верхняя панель занимает место сверху, поэтому отступаем от нее
-            self._top_panel_height:self._video_frame_height,
+            self._top_panel_height:self._full_frame_height,
 
             # левая область и правая область обрамляют изображение посередине
-            self._left_shift_width:self._video_frame_width - self._left_shift_width
+            self._left_shift_width:self._full_frame_width - self._left_shift_width
         ] = output_frame_image
 
         # признак, что найден объект (объекты) с достаточным весом
@@ -146,7 +148,8 @@ class ObjectDetector:
             self._draw_rectangle(
                 processed_frame,
                 detection_window_x1, detection_window_y1,
-                detection_window_x2, detection_window_y2
+                detection_window_x2, detection_window_y2,
+                color=(0, 0, 0)
             )
 
             # перейдем к координатам исходного изображения
@@ -185,8 +188,8 @@ class ObjectDetector:
         :param y: значение y
         :return: (x, y)
         """
-        x_image_frame = round(x * self._resize_coef)
-        y_image_frame = round(y * self._resize_coef)
+        x_image_frame = round(x * self._detection_resize_coef)
+        y_image_frame = round(y * self._detection_resize_coef)
         return x_image_frame, y_image_frame
 
     def _coord_image_to_full_frame(self, x: int, y: int) -> typing.Tuple[int, int]:
@@ -196,8 +199,8 @@ class ObjectDetector:
         :param y: значение y
         :return: (x, y)
         """
-        x_full = round((x * self._IMAGE_COEF_FULL_FRAME) + self._top_panel_height)
-        y_full = round((y * self._IMAGE_COEF_FULL_FRAME) + self._left_shift_width)
+        x_full = round((x * self._IMAGE_COEF_FULL_FRAME) + self._left_shift_width)
+        y_full = round((y * self._IMAGE_COEF_FULL_FRAME) + self._top_panel_height)
         return x_full, y_full
 
     def _draw_rectangle(
@@ -220,7 +223,7 @@ class ObjectDetector:
             (x1, y1),
             (x2, y2),
             color,
-            1
+            3
         )
 
     def _draw_object_zone(
