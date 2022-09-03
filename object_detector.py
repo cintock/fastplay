@@ -24,14 +24,30 @@ class ObjectDetector:
     _NUMPY_ARR_HEIGHT_INDEX = 0
 
     def __init__(self):
+        # ширина и высота только изображения (на полном выходном кадре)
         self._output_only_image_width: typing.Optional[int] = None
         self._output_only_image_height: typing.Optional[int] = None
+
+        # ширина области с левой стороны от изображения на полном выходном кадре
         self._left_shift_width: typing.Optional[int] = None
+
+        # высота верхней панели на полном выходном кадре (расстояние до изображения сверху)
         self._top_panel_height: typing.Optional[int] = None
+
+        # объект, который распознает изображения
         self._hog: typing.Optional[cv2.HOGDescriptor] = None
+
+        # имя выходного видеофайла
         self._output_filename: typing.Optional[str] = None
+
+        # объект, записывающий в выходной видеофайл
         self._out_video: typing.Optional[cv2.VideoWriter] = None
+
+        # коэффициент, определяющий, во сколько раз распознаваемый кадр меньше исходного
         self._detection_resize_coef: typing.Optional[float] = None
+
+        # высота и ширина полного выходного кадра, а также высота и
+        # ширина входного изображения (они принимаются одинаковыми)
         self._full_frame_width: typing.Optional[int] = None
         self._full_frame_height: typing.Optional[int] = None
 
@@ -40,6 +56,13 @@ class ObjectDetector:
         self._output_filename = name
 
     def begin_detection(self, frame_width: int, frame_height: int):
+        """
+        Перед началом распознавания нужно указать ширину и высоту входного кадра.
+        Эта высота и ширина также будет высотой и шириной полного выходного кадра
+        :param frame_width:
+        :param frame_height:
+        :return:
+        """
         assert isinstance(frame_width, int)
         assert isinstance(frame_height, int)
 
@@ -70,6 +93,11 @@ class ObjectDetector:
         self._hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
     def process_frame(self, input_frame: numpy.ndarray):
+        """
+        Распознать кадр, и поместить результат распознавания (если есть объекты) в результирующий видеофайл.
+        :param input_frame: трехмерный массив, представляющий двумерный кадр (высота, ширина, цвет в BGR)
+        """
+        assert len(input_frame.shape) == 3
         if (
             input_frame.shape[self._NUMPY_ARR_WIDTH_INDEX] != self._full_frame_width or
             input_frame.shape[self._NUMPY_ARR_HEIGHT_INDEX] != self._full_frame_height
