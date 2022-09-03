@@ -14,6 +14,9 @@ class ObjectDetector:
     _PROCESSED_FRAME_RESOLUTION_WIDTH = 768
     _PROCESSED_FRAME_RESOLUTION_HEIGHT = 432
 
+    # какая минимальная оценка похожести нужна, чтобы учитывать объект
+    _DETECTION_THRESHOLD = 0.7
+
     # какую часть выходного кадра будет занимать изображение
     _IMAGE_COEF_FULL_FRAME = 0.9
 
@@ -97,14 +100,17 @@ class ObjectDetector:
             self._left_shift_width:self._video_frame_width - self._left_shift_width
         ] = output_frame_image
 
-        # если обнаружены объекты
+        # признак, что найден объект (объекты) с достаточным весом
+        object_detected = False
+
+        # если получены данные распознавания
         if len(boxes) > 0:
             for box, weight in zip(boxes, weights):
-                if weight > 0.7:
-                    x1_det = box[0]
-                    y1_det = box[1]
-                    width_det = box[2]
-                    height_det = box[3]
+                if weight > self._DETECTION_THRESHOLD:
+                    x1_det = int(box[0])
+                    y1_det = int(box[1])
+                    width_det = int(box[2])
+                    height_det = int(box[3])
                     x2_det = x1_det + width_det
                     y2_det = y1_det + height_det
 
@@ -121,6 +127,11 @@ class ObjectDetector:
                         x1, y1, x2, y2
                     )
 
+                    self._draw_object_zone(processed_frame, weight, x1_det, y1_det, x2_det, y2_det)
+
+                    object_detected = True
+
+        if object_detected:
             # получим ширину и высоту окна распознавания в координатах изображения на котором распознавалось
             detection_window_width = self._hog.winSize[0]
             detection_window_height = self._hog.winSize[1]
@@ -131,6 +142,12 @@ class ObjectDetector:
             detection_window_y1 = self._PROCESSED_FRAME_RESOLUTION_HEIGHT - detection_window_height
             detection_window_x2 = detection_window_x1 + detection_window_width
             detection_window_y2 = detection_window_y1 + detection_window_height
+
+            self._draw_rectangle(
+                processed_frame,
+                detection_window_x1, detection_window_y1,
+                detection_window_x2, detection_window_y2
+            )
 
             # перейдем к координатам исходного изображения
             detection_window_x1, detection_window_y1 = self._coord_processed_image_to_image(
@@ -155,6 +172,7 @@ class ObjectDetector:
             )
 
             cv2.imshow('detection', output_frame)
+            cv2.imshow('processed_frame', processed_frame)
             self._out_video.write(output_frame)
 
     def end_detection(self):
@@ -162,7 +180,7 @@ class ObjectDetector:
 
     def _coord_processed_image_to_image(self, x: int, y: int) -> typing.Tuple[int, int]:
         """
-        Переход от координат обрабатываемого изображения к координатам исходного изображения
+        Переход от координат обрабатываемого изображения к координатам исходного изображения.
         :param x: значение x
         :param y: значение y
         :return: (x, y)
@@ -173,7 +191,7 @@ class ObjectDetector:
 
     def _coord_image_to_full_frame(self, x: int, y: int) -> typing.Tuple[int, int]:
         """
-        Переход от координат исходного изображения к координатам выходного кадра
+        Переход от координат исходного изображения к координатам выходного кадра.
         :param x: значение x
         :param y: значение y
         :return: (x, y)
@@ -202,7 +220,7 @@ class ObjectDetector:
             (x1, y1),
             (x2, y2),
             color,
-            3
+            1
         )
 
     def _draw_object_zone(
