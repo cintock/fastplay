@@ -179,12 +179,18 @@ class ObjectDetector:
             self,
             frame: numpy.ndarray,
             weight: typing.Optional[float],
-            x1: typing.Union[int, float], y1: typing.Union[int, float],
-            x2: typing.Union[int, float], y2: typing.Union[int, float],
+            x1: int,
+            y1: int,
+            x2: int,
+            y2: int,
             color: tuple = (255, 255, 0)
     ):
         assert isinstance(frame, numpy.ndarray)
         assert isinstance(weight, float) or weight is None
+        assert isinstance(x1, int)
+        assert isinstance(y1, int)
+        assert isinstance(x2, int)
+        assert isinstance(y2, int)
         assert x1 <= x2
         assert y1 <= y2
 
@@ -194,32 +200,39 @@ class ObjectDetector:
 
         if weight is not None:
             text = '{0:.2f}'.format(weight)
-            text_x1 = int(x1)
-            text_y1 = int(y1 - 10)
+            text_x1 = x1
+            text_y1 = y1 - 10
+            self._print_text(frame, text_x1, text_y1, text)
 
-            (width, height), _ = cv2.getTextSize(
-                text,
-                cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1,
-                thickness=2
-            )
-            text_x2 = text_x1 + width
-            text_y2 = text_y1 - height
+    def _print_text(self, frame: numpy.ndarray, x: int, y: int, text: str):
+        assert isinstance(frame, numpy.ndarray)
+        assert isinstance(x, int)
+        assert isinstance(y, int)
+        assert isinstance(text, str)
 
-            cv2.rectangle(
-                frame,
-                (text_x1 - 7, text_y1 + 4),
-                (text_x2 + 7, text_y2 - 4),
-                color=(0, 0, 0),
-                thickness=-1
-            )
+        (width, height), _ = cv2.getTextSize(
+            text,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=1,
+            thickness=2
+        )
+        x2 = x + width
+        y2 = y - height
 
-            cv2.putText(
-                frame,
-                text,
-                (text_x1, text_y1),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1,
-                color=(0, 0, 255),
-                thickness=2
-            )
+        cv2.rectangle(
+            frame,
+            (x - 7, y + 4),
+            (x2 + 7, y2 - 4),
+            color=(0, 0, 0),
+            thickness=-1
+        )
+
+        cv2.putText(
+            frame,
+            text,
+            (x, y),
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=1,
+            color=(0, 0, 255),
+            thickness=2
+        )
