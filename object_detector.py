@@ -130,12 +130,24 @@ class ObjectDetector:
     def end_detection(self):
         self._out_video.release()
 
-    def _coord_processed_image_to_image(self, x, y) -> typing.Tuple[int, int]:
-        x_image_frame = x * self._resize_coef
-        y_image_frame = y * self._resize_coef
+    def _coord_processed_image_to_image(self, x: int, y: int) -> typing.Tuple[int, int]:
+        """
+        Переход от координат обрабатываемого изображения к координатам исходного изображения
+        :param x: значение x
+        :param y: значение y
+        :return: (x, y)
+        """
+        x_image_frame = round(x * self._resize_coef)
+        y_image_frame = round(y * self._resize_coef)
         return x_image_frame, y_image_frame
 
     def _coord_image_to_full_frame(self, x: int, y: int) -> typing.Tuple[int, int]:
+        """
+        Переход от координат исходного изображения к координатам выходного кадра
+        :param x: значение x
+        :param y: значение y
+        :return: (x, y)
+        """
         x_full = round((x * self._IMAGE_COEF_FULL_FRAME) + self._top_panel_height)
         y_full = round((y * self._IMAGE_COEF_FULL_FRAME) + self._left_shift_width)
         return x_full, y_full
@@ -143,20 +155,22 @@ class ObjectDetector:
     def _draw_rectangle(
         self,
         frame: numpy.ndarray,
-        x1: typing.Union[int, float], y1: typing.Union[int, float],
-        width: typing.Union[int, float], height: typing.Union[int, float],
+        x1: int,
+        y1: int,
+        width: int,
+        height: int,
         color: tuple = (255, 255, 0),
     ):
-        assert isinstance(x1, (int, float))
-        assert isinstance(y1, (int, float))
-        assert isinstance(width, (int, float))
-        assert isinstance(height, (int, float))
+        assert isinstance(x1, int)
+        assert isinstance(y1, int)
+        assert isinstance(width, int)
+        assert isinstance(height, int)
         x2 = x1 + width
         y2 = y1 + height
         cv2.rectangle(
             frame,
-            (int(x1), int(y1)),
-            (int(x2), int(y2)),
+            (x1, y1),
+            (x2, y2),
             color,
             3
         )
