@@ -20,7 +20,6 @@ class ObjectDetector:
     _NUMPY_ARR_WIDTH_INDEX = 1
     _NUMPY_ARR_HEIGHT_INDEX = 0
 
-    # todo: привести этот класс в порядок
     def __init__(self):
         self._left_shift_width: typing.Optional[int] = None
         self._top_panel_height: typing.Optional[int] = None
@@ -109,9 +108,11 @@ class ObjectDetector:
                     x2_det = x1_det + width_det
                     y2_det = y1_det + height_det
 
+                    # переход от координат изображения на котором распознавалось к координатам исходного изображения
                     x1, y1 = self._coord_processed_image_to_image(x1_det, y1_det)
                     x2, y2 = self._coord_processed_image_to_image(x2_det, y2_det)
 
+                    # переход от координат исходного изображения к координатам выходного кадра
                     x1, y1 = self._coord_image_to_full_frame(x1, y1)
                     x2, y2 = self._coord_image_to_full_frame(x2, y2)
 
@@ -120,10 +121,39 @@ class ObjectDetector:
                         x1, y1, x2, y2
                     )
 
-            example_box_x2, example_box_y2 = self._coord_processed_image_to_image(self._hog.winSize[0], self._hog.winSize[1])
-            example_box_x2, example_box_y2 = self._coord_image_to_full_frame(example_box_x2, example_box_y2)
-            width, height = example_box_x2, example_box_y2
-            self._draw_rectangle(output_frame, 0, 0, width, height, color=(0, 0, 0))
+            # получим ширину и высоту окна распознавания в координатах изображения на котором распознавалось
+            detection_window_width = self._hog.winSize[0]
+            detection_window_height = self._hog.winSize[1]
+
+            # посчитаем координаты окна распознавания, чтобы поместить его слева внизу
+            # (координаты в системе изображения на котором распознавалось)
+            detection_window_x1 = 0
+            detection_window_y1 = self._PROCESSED_FRAME_RESOLUTION_HEIGHT - detection_window_height
+            detection_window_x2 = detection_window_x1 + detection_window_width
+            detection_window_y2 = detection_window_y1 + detection_window_height
+
+            # перейдем к координатам исходного изображения
+            detection_window_x1, detection_window_y1 = self._coord_processed_image_to_image(
+                detection_window_x1, detection_window_y1)
+            detection_window_x2, detection_window_y2 = self._coord_processed_image_to_image(
+                detection_window_x2, detection_window_y2)
+
+            # перейдем к координатам полного изображения
+            detection_window_x1, detection_window_y1 = self._coord_image_to_full_frame(
+                detection_window_x1, detection_window_y1)
+            detection_window_x2, detection_window_y2 = self._coord_image_to_full_frame(
+                detection_window_x2, detection_window_y2)
+
+            detection_window_width = detection_window_x2 - detection_window_x1
+            detection_window_height = detection_window_y2 - detection_window_y1
+
+            self._draw_rectangle(
+                output_frame,
+                detection_window_x1, detection_window_y1,
+                detection_window_width, detection_window_height,
+                color=(0, 0, 0)
+            )
+
             cv2.imshow('detection', output_frame)
             self._out_video.write(output_frame)
 
