@@ -5,8 +5,6 @@ import typing
 import cv2
 import numpy
 
-from objects_saver import ObjectSaver
-
 
 class ObjectDetector:
     # разрешение кадра, на котором определяются объекты

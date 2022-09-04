@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import typing
-from abc import ABC
 
 import numpy
 
-from i_frame_post_processor import IFramePostProcessor
-from object_detector import ObjectDetector
+from source.i_frame_post_processor import IFramePostProcessor
+from source.object_detector import ObjectDetector
 
 
 class PersonDetectorFramePostprocessor(IFramePostProcessor):

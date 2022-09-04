@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import cv2
 
-from person_detector_frame_postprocessor import PersonDetectorFramePostprocessor
-from task.task_description import TaskDescription
-from video_concatenator import VideoConcatenator
+from source.person_detector_frame_postprocessor import PersonDetectorFramePostprocessor
+from source.task.task_description import TaskDescription
+from source.video_concatenator import VideoConcatenator
 
 
 class TaskProcessor:

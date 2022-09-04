@@ -5,7 +5,7 @@ import glob
 import os
 from typing import List, Set, Optional
 
-from utils.frozen import Frozen
+from source.utils.frozen import Frozen
 
 
 class VideoFilesSearcher(Frozen):

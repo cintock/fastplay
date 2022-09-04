@@ -3,8 +3,8 @@
 import argparse
 import os.path
 
-from task.json_task_parser import JsonTaskParser, JsonTaskParserException
-from task_processor import TaskProcessor
+from source.task.json_task_parser import JsonTaskParser, JsonTaskParserException
+from source.task_processor import TaskProcessor
 
 
 if __name__ == '__main__':

@@ -5,8 +5,8 @@ import json
 import os.path
 import typing
 
-from task.task_description import TaskDescription
-from video_files_searcher import VideoFilesSearcher
+from source.task.task_description import TaskDescription
+from source.video_files_searcher import VideoFilesSearcher
 
 
 class JsonTaskParserException(Exception):

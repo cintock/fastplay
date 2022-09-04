@@ -3,7 +3,7 @@
 import cv2
 import numpy
 
-from utils.frozen import Frozen
+from source.utils import Frozen
 
 
 class ObjectSaver(Frozen):

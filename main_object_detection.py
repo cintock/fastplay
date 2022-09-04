@@ -4,10 +4,11 @@ import argparse
 
 import cv2
 
-from object_detector import ObjectDetector
+from source.object_detector import ObjectDetector
 
 KEY_ESC = 27
 EOF_BAD_FRAME_COUNT = 150
+
 
 if __name__ == '__main__':
     argument_parser = argparse.ArgumentParser()

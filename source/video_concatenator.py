@@ -5,8 +5,8 @@ import typing
 from typing import Tuple
 import cv2
 
-from i_frame_post_processor import IFramePostProcessor
-from utils.frozen import Frozen
+from source.i_frame_post_processor import IFramePostProcessor
+from source.utils.frozen import Frozen
 
 
 class VideoConcatenator(Frozen):

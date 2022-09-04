@@ -5,7 +5,7 @@ import pathlib
 from pathlib import Path
 from typing import Optional, List
 
-from utils.frozen import Frozen
+from source.utils.frozen import Frozen
 
 
 class TaskDescription(Frozen):
