@@ -13,6 +13,7 @@ class TaskDescription(Frozen):
         super().__init__()
         self._input_files: List[str] = []
         self._output_concatenation_filename: Optional[str] = None
+        self._output_object_detection_filename: Optional[str] = None
         self._auto_add_date: bool = True
         self._prefix_strftime_format: str = '%Y%m%d%H%M'
         self._output_video_width: int = 960
@@ -76,32 +77,35 @@ class TaskDescription(Frozen):
         self._skipped_frames_count = value
 
     @property
-    def output_object_detection_filename(self):
-        # todo: сделать задаваемым
-        fn = self.output_concatenation_filename
-        p = Path(fn)
-        p.pa
+    def output_object_detection_filename(self) -> Optional[str]:
+        return self._output_object_detection_filename
 
-    def get_actual_output_concatenation_filename(self) -> Path:
+    @output_object_detection_filename.setter
+    def output_object_detection_filename(self, value: Optional[str]):
+        assert isinstance(value, str) or value is None
+        self._output_object_detection_filename = value
+
+    def get_actual_output_concatenation_filename(self) -> str:
         """
         Получить актуальный путь к файлу, куда будет помещен результат объединения.
         В случае необходимости модифицирует имя файла префиксом с датой-временем
         :return: путь к файлу с результатом объединения
         """
         actual_full_filename = self._get_actual_filename(self.output_concatenation_filename)
-        return actual_full_filename
+        return str(actual_full_filename)
 
-    def get_actual_output_object_detection_filename(self) -> Path:
-        # todo: сделать задаваемым
-        actual_full_filename = self._get_actual_filename('person.mp4')
-        return actual_full_filename
+    def get_actual_output_object_detection_filename(self) -> Optional[str]:
+        actual_full_filename = None
+        if self.output_object_detection_filename is not None:
+            actual_full_filename = self._get_actual_filename(self.output_object_detection_filename)
+        return str(actual_full_filename) if actual_full_filename else None
 
     def check(self) -> bool:
         result = self._output_concatenation_filename is not None
         result = result and pathlib.Path(self._output_concatenation_filename).parent.exists()
         return result
 
-    def _get_actual_filename(self, simple_filename: str):
+    def _get_actual_filename(self, simple_filename: str) -> Path:
         path = Path(simple_filename)
         prefix = ''
         if self._auto_add_date:
@@ -120,6 +124,9 @@ class TaskDescription(Frozen):
             f'    Количество входных файлов: {len(self._input_files)}\n' \
             f'    Имя выходного файла с результатами объединения "{self._output_concatenation_filename}"\n' \
             f'    Пример результирующего имени выходного файла "{self.get_actual_output_concatenation_filename()}"\n' \
+            f'    Имя выходного файла с распознаванием объектов "{self._output_object_detection_filename}"\n' \
+            f'    Пример результирующего имени файла с распознаванием объектов ' \
+            f'"{self.get_actual_output_object_detection_filename()}"\n' \
             f'    Автоматически добавлять префикс-дату к имени выходного файла: ' \
             f'{"Да" if self._auto_add_date else "Нет"}\n' \
             f'    Формат префикса strftime для выходного файла: {self._prefix_strftime_format}\n' \

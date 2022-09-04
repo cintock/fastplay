@@ -21,6 +21,7 @@
                 "dir": "T:\\Record\\cam vet 2\\1\\"
             },
             "output_concatenation_filename": "T:\\CamRecordAnalysis\\cam2.mkv",
+            "output_object_detection_filename": "T:\\CamRecordAnalysis\\cam2_person.mkv",
             "output_video_width": 1920,
             "output_video_height": 1080
         },
@@ -37,6 +38,7 @@
                 "dir": "T:\\Record\\ip cam vet 3\\1"             
             },
             "output_concatenation_filename": "T:\\CamRecordAnalysis\\cam3.mkv",
+            "output_object_detection_filename": "T:\\CamRecordAnalysis\\cam3_person.mkv",
             "output_video_width": 1920,
             "output_video_height": 1080               
         }            

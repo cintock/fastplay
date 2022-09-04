@@ -45,6 +45,8 @@ class JsonTaskParser:
         except KeyError:
             raise JsonTaskParserException('Не задан параметр output_concatenation_filename')
 
+        task.output_object_detection_filename = task_dict.get('output_object_detection_filename')
+
         task.output_video_width = task_dict.get('output_video_width', task.output_video_width)
         task.output_video_height = task_dict.get('output_video_height', task.output_video_height)
         task.skipped_frames_count = task_dict.get('skipped_frames_count', task.skipped_frames_count)

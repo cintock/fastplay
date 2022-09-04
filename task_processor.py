@@ -16,7 +16,7 @@ class TaskProcessor:
         fourcc = cv2.VideoWriter_fourcc(*'H264')
         output_video_resolution = (task_description.output_video_width, task_description.output_video_height)
         output_video = cv2.VideoWriter(
-            str(task_description.get_actual_output_concatenation_filename()),
+            task_description.get_actual_output_concatenation_filename(),
             fourcc,
             30.0,
             output_video_resolution
@@ -27,9 +27,10 @@ class TaskProcessor:
                 task_description.output_video_width,
                 task_description.output_video_height
             )
-            person_detection_filename = str(task_description.get_actual_output_object_detection_filename())
-            with PersonDetectorFramePostprocessor(person_detection_filename) as person_detector:
-                concatenator.add_post_processor(person_detector)
+            object_detection_filename = task_description.get_actual_output_object_detection_filename()
+            with PersonDetectorFramePostprocessor(object_detection_filename) as person_detector:
+                if person_detector.is_enabled():
+                    concatenator.add_post_processor(person_detector)
                 concatenator.skipped_frames_count = task_description.skipped_frames_count
                 for file in task_description.input_files:
                     input_video = cv2.VideoCapture(file)
