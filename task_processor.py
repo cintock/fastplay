@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import cv2
 
+from person_detector_frame_postprocessor import PersonDetectorFramePostprocessor
 from task.task_description import TaskDescription
 from video_concatenator import VideoConcatenator
 
@@ -26,19 +27,22 @@ class TaskProcessor:
                 task_description.output_video_width,
                 task_description.output_video_height
             )
-            concatenator.skipped_frames_count = task_description.skipped_frames_count
-            for file in task_description.input_files:
-                input_video = cv2.VideoCapture(file)
-                try:
-                    print('process: {0}'.format(file))
-                    concatenator.append_video(input_video)
-                    print('avg frame time: ', concatenator.get_avg_frame_time())
-                    concatenator.reset_avg_frame_time()
-                    if concatenator.is_exit_requested():
-                        self._is_exit_requested = True
-                        break
-                finally:
-                    input_video.release()
+            person_detection_filename = str(task_description.get_actual_output_object_detection_filename())
+            with PersonDetectorFramePostprocessor(person_detection_filename) as person_detector:
+                concatenator.add_post_processor(person_detector)
+                concatenator.skipped_frames_count = task_description.skipped_frames_count
+                for file in task_description.input_files:
+                    input_video = cv2.VideoCapture(file)
+                    try:
+                        print('process: {0}'.format(file))
+                        concatenator.append_video(input_video)
+                        print('avg frame time: ', concatenator.get_avg_frame_time())
+                        concatenator.reset_avg_frame_time()
+                        if concatenator.is_exit_requested():
+                            self._is_exit_requested = True
+                            break
+                    finally:
+                        input_video.release()
         finally:
             output_video.release()
             cv2.destroyAllWindows()

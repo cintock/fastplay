@@ -75,28 +75,44 @@ class TaskDescription(Frozen):
         assert isinstance(value, int)
         self._skipped_frames_count = value
 
+    @property
+    def output_object_detection_filename(self):
+        # todo: сделать задаваемым
+        fn = self.output_concatenation_filename
+        p = Path(fn)
+        p.pa
+
     def get_actual_output_concatenation_filename(self) -> Path:
         """
         Получить актуальный путь к файлу, куда будет помещен результат объединения.
         В случае необходимости модифицирует имя файла префиксом с датой-временем
         :return: путь к файлу с результатом объединения
         """
-        prefix = ''
-        if self._auto_add_date:
-            current_date = datetime.datetime.now()
-            prefix = current_date.strftime(self._prefix_strftime_format) + '_'
-        path = Path(self.output_concatenation_filename)
-        dirname = path.parent
-        filename = path.name
-        actual_filename_only = prefix + filename
-        actual_full_filename = dirname / actual_filename_only
-        assert isinstance(actual_full_filename, Path)
+        actual_full_filename = self._get_actual_filename(self.output_concatenation_filename)
+        return actual_full_filename
+
+    def get_actual_output_object_detection_filename(self) -> Path:
+        # todo: сделать задаваемым
+        actual_full_filename = self._get_actual_filename('person.mp4')
         return actual_full_filename
 
     def check(self) -> bool:
         result = self._output_concatenation_filename is not None
         result = result and pathlib.Path(self._output_concatenation_filename).parent.exists()
         return result
+
+    def _get_actual_filename(self, simple_filename: str):
+        path = Path(simple_filename)
+        prefix = ''
+        if self._auto_add_date:
+            current_date = datetime.datetime.now()
+            prefix = current_date.strftime(self._prefix_strftime_format) + '_'
+        dirname = path.parent
+        filename = path.name
+        actual_filename_only = prefix + filename
+        actual_full_filename = dirname / actual_filename_only
+        assert isinstance(actual_full_filename, Path)
+        return actual_full_filename
 
     def __str__(self) -> str:
         return \

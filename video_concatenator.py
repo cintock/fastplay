@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
+import typing
 from typing import Tuple
 import cv2
+
+from i_frame_post_processor import IFramePostProcessor
 from utils.frozen import Frozen
 
 
@@ -25,6 +28,8 @@ class VideoConcatenator(Frozen):
         self._frame_count: int = 0
         self._skipped_frames_count = 110
 
+        self._post_processors: typing.List[IFramePostProcessor] = []
+
         # флаг активируется, если пользователь запросил выход
         self._exit_requested = False
 
@@ -38,6 +43,13 @@ class VideoConcatenator(Frozen):
     def skipped_frames_count(self, value: int):
         assert isinstance(value, int)
         self._skipped_frames_count = value
+
+    def add_post_processor(self, processor: IFramePostProcessor):
+        assert isinstance(processor, IFramePostProcessor)
+        self._post_processors.append(processor)
+
+    def clear_all_post_processors(self):
+        self._post_processors.clear()
 
     def append_video(self, input_video: cv2.VideoCapture):
         assert isinstance(input_video, cv2.VideoCapture)
@@ -76,6 +88,9 @@ class VideoConcatenator(Frozen):
                     cv2.imshow('frame', frame)
 
                     self._output_video.write(frame)
+
+                    for post_processor in self._post_processors:
+                        post_processor.process_frame(frame)
 
                     # пропускаем кадры (решение CAP_PROP_POS_FRAMES не срабатывает как надо для данного типа видео)
                     for i in range(self._skipped_frames_count):
