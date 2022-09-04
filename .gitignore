@@ -1,4 +1,6 @@
 /img
+/build
+/dist
 *.mp4
 *.avi
 __pycache__

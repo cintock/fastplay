@@ -155,7 +155,7 @@ class ObjectDetector:
                         x1, y1, x2, y2
                     )
 
-                    self._draw_object_zone(processed_frame, weight, x1_det, y1_det, x2_det, y2_det)
+                    self._draw_object_zone(processed_frame, float(weight), x1_det, y1_det, x2_det, y2_det)
 
                     object_detected = True
 
