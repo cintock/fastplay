@@ -30,3 +30,5 @@
 посмотреть его в полном архиве.
 
 
+https://github.com/cintock/fastplay/assets/46611567/658245a3-914d-4bfd-a374-8086cefebb28
+
